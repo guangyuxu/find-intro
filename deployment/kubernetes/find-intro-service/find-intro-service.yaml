@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: find-intro-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: find-intro-service
+  template:
+    metadata:
+      labels:
+        app: find-intro-service
+    spec:
+      containers:
+        - name: find-intro-service
+          image: guangyuxu/find-intro-service:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MYSQL_HOST
+              value: "mysql"
+            - name: VECTOR_QDRANT_HOST
+              value: "qdrant"
+            - name: OPENAI_API_BASE
+              value: "${OPENAI_API_BASE}"
+            - name: OPENAI_API_KEY
+              value: "${OPENAI_API_KEY}"
+          volumeMounts:
+            - name: logs
+              mountPath: /app/logs
+      volumes:
+        - name: logs
+          hostPath:
+            path: /tmp/logs
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: find-intro-service
+spec:
+  selector:
+    app: find-intro-service
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
